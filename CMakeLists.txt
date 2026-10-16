@@ -9,4 +9,6 @@ add_executable(
         main.exe
         main.cpp
         Views/Interface.cpp
+        Models/NewtonFL.cpp
+        Models/FuncaoPendulo.cpp
 )
