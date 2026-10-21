@@ -9,4 +9,7 @@ add_executable(
         main.exe
         main.cpp
         Views/Interface.cpp
+        Models/InterfaceMetodo.cpp
+        Models/NewtonRaphson.cpp
+        Controllers/item_a.cpp
 )
