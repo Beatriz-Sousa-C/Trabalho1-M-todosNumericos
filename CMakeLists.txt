@@ -9,4 +9,8 @@ add_executable(
         main.exe
         main.cpp
         Views/Interface.cpp
+        Models/FuncHorner.cpp
+        Models/NewtonHorner.cpp
+        Models/PosicaoFalsa.cpp
+        Models/AnaliseG.cpp
 )
