@@ -19,7 +19,7 @@ Resultado NewtonRaphson::calcular(const Funcao &funcao, const Parametros &parame
             return r;
         }
 
-        x_prox = x - parametros.lambda*f_x/f_derivada;
+        x_prox = x - f_x/f_derivada;
 
         ++iteracoes;
         if (std::abs(x_prox - x) < parametros.precisao) {

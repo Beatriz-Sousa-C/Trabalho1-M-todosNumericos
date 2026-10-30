@@ -11,5 +11,7 @@ add_executable(
         Views/Interface.cpp
         Models/InterfaceMetodo.cpp
         Models/NewtonRaphson.cpp
-        Controllers/item_a.cpp
+        Models/NewtonFL.cpp
+        Models/FuncaoPendulo.cpp
+        Controllers/CalculoController.cpp
 )
