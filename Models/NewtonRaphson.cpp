@@ -8,6 +8,7 @@ Resultado NewtonRaphson::calcular(const Funcao &funcao, const Parametros &parame
     double x = parametros.aproximacaoInicial;
     double x_prox;
     int iteracoes = 0;
+    r.historico.push_back(x);
     while(iteracoes < parametros.maximoIteracoes) {
         f_x = funcao.avaliar(x);
         f_derivada = funcao.avaliarDerivada(x);
@@ -20,6 +21,7 @@ Resultado NewtonRaphson::calcular(const Funcao &funcao, const Parametros &parame
         }
 
         x_prox = x - f_x/f_derivada;
+        r.historico.push_back(x_prox);
 
         ++iteracoes;
         if (std::abs(x_prox - x) < parametros.precisao) {

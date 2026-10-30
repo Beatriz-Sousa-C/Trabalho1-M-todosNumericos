@@ -25,6 +25,7 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
     double ultDerivada = 0;
     bool derivadaValida = false;
 
+    resultado.historico.push_back(d);
     for(int i=0; i<maximoIteracoes; i++){
         double valorF = funcao.avaliar(d);
         double derivadaAtual = funcao.avaliarDerivada(d);
@@ -53,6 +54,7 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
         }
 
         double xProx = d - (valorF/FL);
+        resultado.historico.push_back(xProx);
 
         if(!std::isfinite(xProx)){
             resultado.mensagem = "Proxima aproximaçao eh nao finita";

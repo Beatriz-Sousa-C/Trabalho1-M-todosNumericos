@@ -1,6 +1,11 @@
 #include <string>
+#include <cmath>
+#include <vector>
 #ifndef TB1_INTERFACEMETODO_H
+
 #define TB1_INTERFACEMETODO_H
+
+using namespace std;
 
 class Funcao {
 public:
@@ -9,12 +14,22 @@ public:
     virtual ~Funcao() = default;
 };
 
-struct Parametros {
-    double aproximacaoInicial;
+class Parametros {
+public:
+    double aproximacaoInicial; // ou a que é o inicio do intervalo
     double precisao;
     double lambda;
     double passoDerivada;
     int maximoIteracoes;
+    double b; // Fim do intervalo
+
+    Parametros(double a, double eps, double lam, double h, int maxIter,
+               double b = NAN)
+        : aproximacaoInicial(a), precisao(eps), lambda(lam),
+          passoDerivada(h), maximoIteracoes(maxIter),
+          b(std::isnan(b) ? a : b)
+    {}
+
 };
 
 struct Resultado {
@@ -22,7 +37,8 @@ struct Resultado {
     double erro{};
     int iteracoes{};
     bool convergiu{};
-    std::string mensagem;
+    string mensagem;
+    vector<double> historico;
 };
 
 //Contrato comum para os métodos numéricos de cálculo de raízes.
@@ -33,7 +49,7 @@ class InterfaceMetodo {
             const Parametros& parametros
         ) const = 0;
 
-        virtual std::string nome() const = 0;
+        virtual string nome() const = 0;
         virtual ~InterfaceMetodo() = default;
 };
 

@@ -9,9 +9,18 @@ add_executable(
         main.exe
         main.cpp
         Views/Interface.cpp
-        Models/InterfaceMetodo.cpp
-        Models/NewtonRaphson.cpp
+        Models/FuncHorner.cpp
+        Models/NewtonHorner.cpp
+        Models/PosicaoFalsa.cpp
+        Models/AnaliseG.cpp
         Models/NewtonFL.cpp
         Models/FuncaoPendulo.cpp
+        Models/InterfaceMetodo.cpp
+        Models/NewtonRaphson.cpp
+        Models/Bissecao.cpp
+        Models/Secante.cpp
+        Models/DerivadaNumerica.cpp
+        Models/NewtonDerivadaNumerica.cpp
+        Views/Quadros.cpp
         Controllers/CalculoController.cpp
 )

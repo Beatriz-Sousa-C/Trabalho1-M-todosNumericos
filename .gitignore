@@ -72,3 +72,8 @@ Testing/
 #IDE
 /.vscode
 /.idea
+# Saidas geradas pelo programa (P5)
+resultados.csv
+historico.csv
+quadro.md
+quadro.tex
