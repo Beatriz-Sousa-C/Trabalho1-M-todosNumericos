@@ -17,5 +17,10 @@ add_executable(
         Models/FuncaoPendulo.cpp
         Models/InterfaceMetodo.cpp
         Models/NewtonRaphson.cpp
+        Models/Bissecao.cpp
+        Models/Secante.cpp
+        Models/DerivadaNumerica.cpp
+        Models/NewtonDerivadaNumerica.cpp
+        Views/Quadros.cpp
         Controllers/item_a.cpp
 )

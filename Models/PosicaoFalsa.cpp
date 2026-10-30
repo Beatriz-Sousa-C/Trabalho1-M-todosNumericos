@@ -41,6 +41,7 @@ Resultado PosicaoFalsa::calcular(const Funcao& f, const Parametros& par) const {
 
     for (int i = 1; i <= iterMax; i++) {
         double x  = (a * fb - b * fa) / (fb - fa);
+        r.historico.push_back(x);
         double fx = f.avaliar(x);
 
         if (fa * fx > 0) { a = x; fa = fx; } // raiz está em [x, b]

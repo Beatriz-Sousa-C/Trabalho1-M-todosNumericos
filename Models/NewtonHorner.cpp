@@ -20,6 +20,7 @@ Resultado NewtonHorner::calcular(const Funcao& funcao,
     }
 
     double x = par.aproximacaoInicial;
+    r.historico.push_back(x);
     for (int k = 1; k <= par.maximoIteracoes; k++) {
         double p, dp;
         poli->avaliarComDerivada(x, p, dp); // p e p' numa iteração só
@@ -31,6 +32,7 @@ Resultado NewtonHorner::calcular(const Funcao& funcao,
         }
 
         double xNovo = x - p / dp;
+        r.historico.push_back(xNovo);
         r.erro = fabs(xNovo - x);
         x = xNovo;
         r.raiz = x; r.iteracoes = k;

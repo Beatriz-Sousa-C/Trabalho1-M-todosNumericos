@@ -1,5 +1,6 @@
 #include <string>
 #include <cmath>
+#include <vector>
 #ifndef TB1_INTERFACEMETODO_H
 
 #define TB1_INTERFACEMETODO_H
@@ -37,6 +38,7 @@ struct Resultado {
     int iteracoes{};
     bool convergiu{};
     string mensagem;
+    vector<double> historico;
 };
 
 //Contrato comum para os métodos numéricos de cálculo de raízes.

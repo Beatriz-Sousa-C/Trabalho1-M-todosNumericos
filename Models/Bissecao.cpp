@@ -1,4 +1,5 @@
 #include "Bissecao.h"
+#include "constantes.h"
 #include <cmath>
 #include <string>
 #include <utility>
@@ -24,21 +25,21 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
 
     if (!isfinite(a) || !isfinite(b) || !isfinite(epsilon) ||
         maximoIteracoes <= 0 || epsilon <= 0 || a == b) {
-        resultado.mensagem = "Parametro invalido identificado!";
+        r.mensagem = "Parametro invalido identificado!";
         return r;
     }
 
     if (a > b) swap(a, b);
 
-    double f(a) = funcao.avaliar(a);
-    double f(b) = funcao.avaliar(b);
+    double fa = funcao.avaliar(a);
+    double fb = funcao.avaliar(b);
 
-    if (!isfinite(f(a)) || !isfinite(f(b))) {
-        resultado.mensagem = "Valor nao finito nos extremos do intervalo.";
+    if (!isfinite(fa) || !isfinite(fb)) {
+        r.mensagem = "Valor nao finito nos extremos do intervalo.";
         return r;
     }
 
-        if ((f(a) > 0) == (f(b) > 0) && f(a) != 0 && f(b) != 0) {
+        if ((fa > 0) == (fb > 0) && fa != 0 && fb != 0) {
         r.mensagem = "Nao ha troca de sinal em [a, b]: bissecao nao se aplica.";
         return r;
         }
@@ -55,7 +56,7 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
         string avisoIteracoes;
 
         if (maximoIteracoes < necessarias)
-        avisoIteracoes = "\nAVISO: maximo de iteracoes (" to_string(maximoIteracoes) + ") menor que o necessario (" + to_string(necessarias) + "); a precisao nao sera atingida.";
+        avisoIteracoes = "\nAVISO: maximo de iteracoes (" + to_string(maximoIteracoes) + ") menor que o necessario (" + to_string(necessarias) + "); a precisao nao sera atingida.";
         else if (maximoIteracoes == necessarias)
         avisoIteracoes = "\nMaximo de iteracoes igual ao necessario (" + to_string(necessarias) + ").";
         else
@@ -64,24 +65,25 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
 
         for (int i = 0; i < maximoIteracoes; i++) {
         double m = (a + b) / 2;
-        double f(m) = funcao.avaliar(m);
-        if (!isfinite(f(m))) {
-            resultado.mensagem = "Valor nao finito durante o calculo." + avisoIteracoes;
-            return resultado;
+        r.historico.push_back(m);
+        double fm = funcao.avaliar(m);
+        if (!isfinite(fm)) {
+            r.mensagem = "Valor nao finito durante o calculo." + avisoIteracoes;
+            return r;
         }
 
-        if(f(m) == 0){
+        if(fm == 0){
             a=m;
             b=m;
         }
         else if((fa > 0) == (fm > 0)){
             a = m;
-            f(a) = f(m);
+            fa = fm;
         }
         else{
 
             b=m;
-            f(b) = f(m);
+            fb = fm;
         }
 
 
@@ -92,18 +94,18 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
         if (b - a < epsilon) {
             r.convergiu = true;
             r.mensagem = "Raiz calculada com sucesso!";
-            if (fabs(r.raiz) > 0.3) {
+            if (fabs(r.raiz) > DESLOCAMENTO_LIMITE) {
                 r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
             }
             r.mensagem += avisoIteracoes;
             return r;
         }
-
-        r.mensagem = "Limite maximo de iteracoes atingido." + avisoIteracoes;
-        return r;
     }
-    
 
+    r.mensagem = "Limite maximo de iteracoes atingido." + avisoIteracoes;
+    return r;
+}
 
-
-
+string Bissecao::nome() const {
+    return "Bissecao";
+}

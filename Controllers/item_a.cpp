@@ -11,11 +11,6 @@ double FuncaoRaiz::avaliarDerivada(double x_raiz) const {
 double raiz_quadrada(double x) {
     NewtonRaphson n = NewtonRaphson();
     FuncaoRaiz f =  FuncaoRaiz();
-    Parametros p = Parametros();
-    p.aproximacaoInicial = 1.0;
-    p.precisao = 0.0001;
-    p.lambda = 1.0;
-    p.passoDerivada = 0.00001;
-    p.maximoIteracoes = 10000;
+    Parametros p(1.0, 0.0001, 1.0, 0.00001, 10000);
     return n.calcular(f,p).raiz;
 }

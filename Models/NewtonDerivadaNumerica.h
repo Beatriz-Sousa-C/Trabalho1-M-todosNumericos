@@ -10,4 +10,4 @@ public:
     std::string nome() const override;
 };
 
-#endif // TB1_NEWTONDERIVADANUMERICA_Hs
+#endif // TB1_NEWTONDERIVADANUMERICA_H

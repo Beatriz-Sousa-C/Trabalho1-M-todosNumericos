@@ -1,45 +1,59 @@
 #include <iostream>
-#include "Views/Interface.h"
-#include "Models/FuncaoPendulo.h"
+#include <vector>
+#include "Models/FuncHorner.h"
+#include "Models/NewtonRaphson.h"
 #include "Models/NewtonFL.h"
+#include "Models/NewtonDerivadaNumerica.h"
+#include "Models/NewtonHorner.h"
+#include "Models/Secante.h"
+#include "Models/Bissecao.h"
+#include "Models/PosicaoFalsa.h"
+#include "Models/AnaliseG.h"
+#include "Views/Quadros.h"
 
 using namespace std;
 
+void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
+                     double lambda, double d0, double precisao, int maxIter) {
+    FuncHorner f(a3, a2);
+    Parametros pAberto(d0, precisao, lambda, 1e-5, maxIter);
+
+    NewtonRaphson newton;
+    NewtonFL newtonFL;
+    NewtonDerivadaNumerica newtonNum;
+    NewtonHorner newtonHorner;
+    for (const InterfaceMetodo* m : vector<const InterfaceMetodo*>{&newton, &newtonFL, &newtonNum, &newtonHorner})
+        linhas.push_back(executar(*m, f, pAberto, a3, a2, textoPonto(d0)));
+
+    auto intervalos = isolarRaizes(f, 0.0, 5.0, 0.01);
+    if (intervalos.empty()) {
+        cout << "a3=" << a3 << " a2=" << a2 << ": sem raiz positiva em [0, 5]\n";
+        return;
+    }
+    double a = intervalos[0].first, b = intervalos[0].second;
+    Parametros pIntervalo(a, precisao, lambda, 1e-5, maxIter, b);
+    string iso = textoIntervalo(a, b);
+
+    Secante secante;
+    Bissecao bissecao;
+    PosicaoFalsa posicaoFalsa(a, b);
+    for (const InterfaceMetodo* m : vector<const InterfaceMetodo*>{&secante, &bissecao, &posicaoFalsa})
+        linhas.push_back(executar(*m, f, pIntervalo, a3, a2, iso));
+}
+
 int main() {
-    Interface i = Interface();
-    NewtonRaphson n = NewtonRaphson();
-    cout << "Olá main" << endl;
+    vector<LinhaQuadro> linhas;
 
-    FuncaoPendulo funcao(1.0, 1.0);
+    rodarCombinacao(linhas, 1.0, 1.0, 0.05, 0.5, 0.001, 100);
+    rodarCombinacao(linhas, 2.0, 1.0, 0.05, 0.5, 0.001, 100);
+    rodarCombinacao(linhas, 1.0, 0.5, 0.05, 0.5, 0.001, 100);
 
-    Parametros parametros;
-    parametros.aproximacaoInicial = 0.5;
-    parametros.precisao = 0.001;
-    parametros.lambda = 0.05;
-    parametros.passoDerivada = 0.0001;
-    parametros.maximoIteracoes = 100;
+    imprimirQuadroResposta(linhas);
+    imprimirQuadroComparativo(linhas);
 
-    NewtonFL metodo;
-
-    Resultado resultado = metodo.calcular(funcao, parametros);
-   
-    cout << "Metodo: " << metodo.nome() << endl;
-    cout << "Convergiu: " << (resultado.convergiu ? "Sim" : "Nao") << endl;
-    cout << "Raiz aproximada: " << resultado.raiz << endl;
-    cout << "Erro: " << resultado.erro << endl;
-    cout << "Iteracoes: " << resultado.iteracoes << endl;
-    cout << "Mensagem: " << resultado.mensagem << endl;
-    std::cout << "f(raiz): " << funcao.avaliar(resultado.raiz) << '\n';
-
-    std::cout << "f(0.337609): "
-          << funcao.avaliar(0.337609) << '\n';
-
-    std::cout << "f(0.5): "
-          << funcao.avaliar(0.5) << '\n';
-
+    exportarCSV(linhas, "resultados.csv", "historico.csv");
+    exportarMarkdown(linhas, "quadro.md");
+    exportarLatex(linhas, "quadro.tex");
+    cout << "\nArquivos gerados: resultados.csv, historico.csv, quadro.md, quadro.tex\n";
     return 0;
 }
-
-}
-
-
