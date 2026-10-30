@@ -8,7 +8,7 @@
 
 class CalculoController {
     public:
-        Resultado calcularNewtonRaphson();
+        Resultado calcularNewtonRaphson(double aproximacaoInicial,double precisao,double a3,double a2);
 
         Resultado calcularNewtonFL();
 
