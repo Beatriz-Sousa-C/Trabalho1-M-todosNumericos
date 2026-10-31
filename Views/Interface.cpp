@@ -1,11 +1,3 @@
-//
-// Interface (P6): menu interativo no terminal.
-//
-// Fluxo de uma execução:
-//   dados digitados -> FuncHorner(a3,a2) + Parametros -> cada método escolhido
-//   -> executar() do P5 (conta avaliações e mede tempo) -> vector<LinhaQuadro>
-//   -> quadros no terminal + CSV/Markdown/LaTeX -> Graficos/plots.py lê os CSVs.
-//
 #include "Interface.h"
 #include "Quadros.h"
 #include "../Models/FuncHorner.h"
@@ -27,8 +19,6 @@ using namespace std;
 
 namespace {
 
-// ---------------------------------------------------------------- métodos
-// Índices usados na seleção. 0-3 partem de um ponto d0; 4-6 usam o intervalo isolado.
 const int NUM_METODOS = 7;
 const char* NOMES[NUM_METODOS] = {
     "Newton original (a)", "Newton com FL (b)", "Newton deriv. numerica (c)",
@@ -38,14 +28,12 @@ const char* NOMES[NUM_METODOS] = {
 const char* FAMILIAS[NUM_METODOS] = {"Newton", "Newton", "Newton", "Newton",
                                      "Aberto", "Intervalo", "Intervalo"};
 
-// Roda os métodos marcados em 'usar' para UMA combinação (a3, a2, λ) e
-// acrescenta as linhas em 'linhas'. Mesma lógica que estava no main.cpp.
 void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
                      double lambda, double d0, double precisao, int maxIter,
                      const vector<bool>& usar) {
     FuncHorner f(a3, a2);
 
-    // ---- métodos que partem de um ponto inicial d0
+    // métodos que partem de um ponto inicial d0
     Parametros pAberto(d0, precisao, lambda, 1e-5, maxIter);
     NewtonRaphson newton;
     NewtonFL newtonFL;
@@ -55,7 +43,7 @@ void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
     for (int i = 0; i < 4; i++)
         if (usar[i]) linhas.push_back(executar(*newtons[i], f, pAberto, a3, a2, textoPonto(d0)));
 
-    // ---- métodos de intervalo: precisam do isolamento (Bolzano)
+    //métodos de intervalo: precisam do isolamento (Bolzano)
     if (!(usar[4] || usar[5] || usar[6])) return;
     auto intervalos = isolarRaizes(f, 0.0, 5.0, 0.01);
     if (intervalos.empty()) {
@@ -75,7 +63,7 @@ void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
         if (usar[4 + i]) linhas.push_back(executar(*outros[i], f, pIntervalo, a3, a2, iso));
 }
 
-// ---------------------------------------------------------------- leitura
+// leitura
 struct FimDaEntrada {};   // Ctrl+D / entrada acabou
 
 string lerLinha(const string& msg) {
@@ -144,7 +132,7 @@ vector<bool> escolherMetodos() {
 
 } // namespace
 
-// ================================================================ Interface
+//Interface
 
 Interface::Interface() {}
 
@@ -195,8 +183,6 @@ void Interface::casoPadrao() {
 }
 
 void Interface::analiseGrade() {
-    // Item (g): todos os métodos numa grade de a3 e a2. Não imprime os quadros
-    // (seriam 36 combinacoes); grava resultados_grade.csv para os graficos.
     cout << "\nAnalise (g): a3 e a2 em {0,5; 1; 1,5; 2; 2,5; 3}, lambda=0,05, d0=0,5, e=0,001\n";
     vector<double> valores{0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
     vector<LinhaQuadro> linhas;

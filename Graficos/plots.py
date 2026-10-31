@@ -1,15 +1,4 @@
 #!/usr/bin/env python3
-"""Graficos/plots.py (P6) -- gera as figuras dos slides a partir dos CSVs do programa C++.
-
-Uso (na raiz do projeto, onde o main.exe grava os CSVs):
-    python3 Graficos/plots.py [pasta_csv=.] [pasta_figuras=figuras] [a3] [a2] [lambda]
-
-Entradas:
-    resultados.csv, historico.csv            (exportarCSV do P5; obrigatórios)
-    resultados_grade.csv                     (opção 3 do menu; opcional, p/ raiz x a3 e x a2)
-Sem a3/a2/lambda na linha de comando, usa a primeira combinação do resultados.csv.
-O executável C++ continua estático: só este script precisa de Python (pandas, matplotlib).
-"""
 import os
 import re
 import sys
@@ -28,7 +17,6 @@ LIMITE = 0.3  # o pêndulo rompe se d > 0,3 cm
 os.makedirs(FIGS, exist_ok=True)
 
 
-# ------------------------------------------------------------------ utilidades
 def ler_csv(nome, obrigatorio=True):
     caminho = os.path.join(PASTA, nome)
     if not os.path.exists(caminho):
@@ -79,7 +67,6 @@ def salvar(fig, nome):
     print("  gerado", caminho)
 
 
-# ------------------------------------------------------------------ dados
 res_all = ler_csv("resultados.csv")
 hist_all = ler_csv("historico.csv")
 grade = ler_csv("resultados_grade.csv", obrigatorio=False)
@@ -113,7 +100,7 @@ def serie(metodo):
     return d.k.to_numpy(), d.x_k.to_numpy()
 
 
-# ------------------------------------------------------------------ 1) convergência
+# 1) convergência
 def erro_serie(xs):
     """|x_k - r|, com r = raiz de referência mais próxima do último x_k.
     (Não usamos a coluna 'erro' do CSV: ela significa coisas diferentes em cada método.)"""
@@ -149,7 +136,7 @@ for fam in ["Newton", "Intervalo", "Abertos"]:
     if ms:
         plot_convergencia(ms, f"Convergência – família {fam}", f"01_convergencia_{fam.lower()}.png")
 
-# ------------------------------------------------------------------ 2) f(d) com as raízes
+# 2) f(d) com as raízes
 fig, ax = plt.subplots(figsize=(7, 4.4))
 d = np.linspace(raizes.min() - 0.8, raizes.max() + 0.8, 600)
 ax.plot(d, f(d, a3, a2), color="#1f77b4", lw=2, label=r"$f(d)=a_3d^3-9a_2d+3$")
@@ -167,7 +154,7 @@ ax.legend(fontsize=8)
 salvar(fig, "02_f_raizes.png")
 
 
-# ------------------------------------------------------------------ 3) intervalos encolhendo
+# 3) intervalos encolhendo
 def reconstruir_intervalos(row, xs):
     """Bisseção e posição falsa não guardam [a,b]: refazemos a partir do isolamento inicial
     (coluna 'isolamento', ex.: "[0.33;0.34]") e do sinal de f em cada x_k do histórico."""
@@ -212,7 +199,7 @@ if alvos:
     axs[0][0].set_ylabel("d (cm)")
     salvar(fig, "03_intervalos.png")
 
-# ------------------------------------------------------------------ 4) teia de aranha (ponto fixo)
+# 4) teia de aranha (ponto fixo)
 phi1 = lambda x: (a3 * x**3 + 3) / (9 * a2)
 phi2 = lambda x: np.cbrt((9 * a2 * x - 3) / a3)
 dphi1 = lambda x: 3 * a3 * x**2 / (9 * a2)
@@ -251,7 +238,7 @@ if len(raizes) == 3:
     teia(axs[1, 1], phi2, dphi2, r_peq + 0.05, r_peq, r"$\varphi_2$, d0 perto da raiz pequena", r_peq - 0.4, r_peq + 0.9)
     salvar(fig, "04_teia_ponto_fixo.png")
 
-# ------------------------------------------------------------------ 5) barras de custo
+# 5) barras de custo
 cols = [("iteracoes", "Iterações"), ("aval_f", "Avaliações de f"), ("aval_df", "Avaliações de f'"), ("tempo_us", "Tempo (µs)")]
 fig, axs = plt.subplots(1, 4, figsize=(15, 4))
 for ax, (col, tit) in zip(axs, cols):
@@ -266,7 +253,7 @@ for ax in axs[1:]:
 salvar(fig, "05_custo.png")
 
 
-# ------------------------------------------------------------------ 6) raiz × a3 e raiz × a2 (análise g)
+# 6) raiz × a3 e raiz × a2 (análise g)
 def raiz_vs(param, valores, fixo, nome):
     """Esquerda: as 3 raízes. Direita: zoom na raiz pequena contra o limite de 0,3 cm."""
     fig, (ax, az) = plt.subplots(1, 2, figsize=(11, 4.4))

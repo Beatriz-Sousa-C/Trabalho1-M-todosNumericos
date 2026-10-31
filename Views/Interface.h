@@ -1,8 +1,3 @@
-//
-// Interface (P6): menu interativo no terminal.
-// Pergunta os dados, roda os métodos escolhidos (via executar() do P5),
-// mostra os quadros e exporta os CSVs que o Graficos/plots.py lê.
-//
 #ifndef TB1_INTERFACE_H
 #define TB1_INTERFACE_H
 
