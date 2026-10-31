@@ -17,7 +17,6 @@ Resultado Secante::calcular(const Funcao& funcao,const Parametros& p) const{
     double x1 = p.b;
     double d = p.aproximacaoInicial;
     double epsilon = p.precisao;
-    double lambda = p.lambda;
     int maximoIteracoes = p.maximoIteracoes;
     
     r.raiz = d;
@@ -33,7 +32,7 @@ Resultado Secante::calcular(const Funcao& funcao,const Parametros& p) const{
         return r;
     }
 
-    if (!std::isfinite(d) || !std::isfinite(lambda) || !std::isfinite(epsilon) || maximoIteracoes<=0 || lambda<=0 || epsilon<=0 ){
+    if (!std::isfinite(x0) || !std::isfinite(x1) || !std::isfinite(epsilon) || maximoIteracoes<=0 || epsilon<=0 ){
         r.mensagem = "Parametro invalido identificado!";
         return r;
     }
@@ -63,6 +62,9 @@ Resultado Secante::calcular(const Funcao& funcao,const Parametros& p) const{
         r.iteracoes = i + 1;
         r.convergiu = true;
         r.mensagem = "Convergiu";
+        if (fabs(r.raiz) > DESLOCAMENTO_LIMITE) {
+            r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
+        }
         return r;
     }
 
