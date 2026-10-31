@@ -21,7 +21,7 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
         return resultado;
     }
 
-    double FL;
+    double FL = 0.0;
     double ultDerivada = 0;
     bool derivadaValida = false;
 
@@ -35,18 +35,20 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
             return resultado;
         }
 
-        if (std::abs(derivadaAtual)>lambda){
+        if (std::abs(derivadaAtual) >= lambda) {
             ultDerivada = derivadaAtual;
             derivadaValida = true;
-            FL = derivadaAtual;
         }
-        else{
-            if(derivadaValida==false){
+
+        if (std::abs(derivadaAtual) > lambda) {
+            FL = derivadaAtual;
+        } else {
+            if (!derivadaValida) {
                 resultado.mensagem = "Nao existe derivada valida anterior para reutilizar";
                 return resultado;
             }
             FL = ultDerivada;
-        } 
+        }
 
         if(FL==0 || !std::isfinite(FL)){
             resultado.mensagem = "Denominador invalido (igual a zero ou nao finito)";
@@ -54,13 +56,13 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
         }
 
         double xProx = d - (valorF/FL);
-        resultado.historico.push_back(xProx);
-
+        
         if(!std::isfinite(xProx)){
-            resultado.mensagem = "Proxima aproximaçao eh nao finita";
+            resultado.mensagem = "Proxima aproximacao eh nao finita";
             return resultado;
         }
-
+        
+        resultado.historico.push_back(xProx);
         resultado.raiz = xProx;
         resultado.erro = std::abs(xProx - d);
         resultado.iteracoes = i + 1;

@@ -5,10 +5,7 @@ Resultado CalculoController::calcularNewtonRaphson(
     double precisao,
     double a3,
     double a2) {
-    Parametros parametros;
-    parametros.aproximacaoInicial = aproximacaoInicial;
-    parametros.maximoIteracoes = 10000;
-    parametros.precisao = precisao;
+    Parametros parametros(aproximacaoInicial, precisao, 0.05, 1e-5, 10000);
 
     FuncaoPendulo funcoes = FuncaoPendulo(a3,a2);
 
