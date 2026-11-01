@@ -44,7 +44,7 @@ void executarLote(const vector<double>& valoresA3,
             for (const InterfaceMetodo* m : metodosAbertos)
                 imprimirLinha(a3, a2, m->nome(), m->calcular(f, par), limite);
 
-            auto intervalos = isolarRaizes(f, 0.0, 5.0, 0.01);
+            auto intervalos = isolarRaizes(f, 0.0, 5.0, 0.5);
             if (!intervalos.empty()) {
                 Parametros parIntervalo(intervalos[0].first, par.precisao, par.lambda,
                                         par.passoDerivada, par.maximoIteracoes,
