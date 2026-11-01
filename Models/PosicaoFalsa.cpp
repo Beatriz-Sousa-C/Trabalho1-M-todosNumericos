@@ -1,16 +1,12 @@
 #include "PosicaoFalsa.h"
 #include "constantes.h"
-#include <bits/stdc++.h>
+#include <cmath>
+#include <utility>
 using namespace std;
 
 static double escolha(const Funcao& f, double a, double b) {
     if (abs(f.avaliar(a)) < abs(f.avaliar(b))) return a;
     return b;
-}
-
-static void avisarLimite(Resultado& r) {
-    if (abs(r.raiz) > DESLOCAMENTO_LIMITE)
-        r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
 }
 
 Resultado PosicaoFalsa::calcular(const Funcao& f, const Parametros& par) const {
@@ -49,11 +45,11 @@ Resultado PosicaoFalsa::calcular(const Funcao& f, const Parametros& par) const {
     if (abs(b - a) < erro1) {
         r.raiz = escolha(f, a, b); r.convergiu = true;
         r.mensagem = "Intervalo inicial ja menor que e.";
-        avisarLimite(r);
+        avisarDeslocamento(r);
         return r;
     }
-    if (fa == 0) { r.raiz = a; r.erro = 0; r.convergiu = true; r.mensagem = "a ja e raiz (f(a) = 0)."; avisarLimite(r); return r; }
-    if (fb == 0) { r.raiz = b; r.erro = 0; r.convergiu = true; r.mensagem = "b ja e raiz (f(b) = 0)."; avisarLimite(r); return r; }
+    if (fa == 0) { r.raiz = a; r.erro = 0; r.convergiu = true; r.mensagem = "a ja e raiz (f(a) = 0)."; avisarDeslocamento(r); return r; }
+    if (fb == 0) { r.raiz = b; r.erro = 0; r.convergiu = true; r.mensagem = "b ja e raiz (f(b) = 0)."; avisarDeslocamento(r); return r; }
 
     double xAnterior = NAN;
     for (int i = 1; i <= iterMax; i++) {
@@ -80,7 +76,7 @@ Resultado PosicaoFalsa::calcular(const Funcao& f, const Parametros& par) const {
             if (fx == 0) r.erro = 0;
             r.convergiu = true;
             r.mensagem = (fx == 0) ? "Convergiu: f(x) = 0." : "Convergiu: |x_k - x_{k-1}| < e.";
-            avisarLimite(r);
+            avisarDeslocamento(r);
             return r;
         }
         if (abs(b - a) < erro1) {
@@ -88,7 +84,7 @@ Resultado PosicaoFalsa::calcular(const Funcao& f, const Parametros& par) const {
             r.erro = abs(b - a);
             r.convergiu = true;
             r.mensagem = "Convergiu: |b - a| < e.";
-            avisarLimite(r);
+            avisarDeslocamento(r);
             return r;
         }
     }

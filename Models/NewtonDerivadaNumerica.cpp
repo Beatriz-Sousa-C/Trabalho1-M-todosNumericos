@@ -58,9 +58,7 @@ Resultado NewtonDerivadaNumerica::calcular(const Funcao& f, const Parametros& p)
         if (r.erro < epsilon) {
             r.convergiu = true;
             r.mensagem = "Raiz calculada com sucesso!";
-            if (fabs(r.raiz) > DESLOCAMENTO_LIMITE) {
-                r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
-            }
+            avisarDeslocamento(r);
             return r;
         }
 

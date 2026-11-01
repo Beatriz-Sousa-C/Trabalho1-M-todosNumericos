@@ -6,11 +6,6 @@
 
 using namespace std;
 
-static void avisarLimite(Resultado& r) {
-    if (fabs(r.raiz) > DESLOCAMENTO_LIMITE)
-        r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
-}
-
 Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros) const {
     Resultado r{};
 
@@ -45,7 +40,7 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
         r.erro = 0;
         r.convergiu = true;
         r.mensagem = "Extremo do intervalo ja e raiz.";
-        avisarLimite(r);
+        avisarDeslocamento(r);
         return r;
     }
 
@@ -59,7 +54,7 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
         r.erro = (b - a) / 2;
         r.convergiu = true;
         r.mensagem = "Intervalo menor que a precisao.";
-        avisarLimite(r);
+        avisarDeslocamento(r);
         return r;
     }
 
@@ -104,7 +99,7 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
         if (b - a < epsilon) {
             r.convergiu = true;
             r.mensagem = "Raiz calculada com sucesso!";
-            avisarLimite(r);
+            avisarDeslocamento(r);
             r.mensagem += avisoIteracoes;
             return r;
         }

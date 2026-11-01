@@ -1,11 +1,9 @@
+#ifndef TB1_INTERFACEMETODO_H
+#define TB1_INTERFACEMETODO_H
+
 #include <string>
 #include <cmath>
 #include <vector>
-#ifndef TB1_INTERFACEMETODO_H
-
-#define TB1_INTERFACEMETODO_H
-
-using namespace std;
 
 class Funcao {
 public:
@@ -37,8 +35,8 @@ struct Resultado {
     double erro{};
     int iteracoes{};
     bool convergiu{};
-    string mensagem;
-    vector<double> historico;
+    std::string mensagem;
+    std::vector<double> historico;
 };
 
 //Contrato comum para os métodos numéricos de cálculo de raízes.
@@ -49,7 +47,7 @@ class InterfaceMetodo {
             const Parametros& parametros
         ) const = 0;
 
-        virtual string nome() const = 0;
+        virtual std::string nome() const = 0;
         virtual ~InterfaceMetodo() = default;
 };
 

@@ -15,7 +15,6 @@ add_executable(
         Models/AnaliseG.cpp
         Models/NewtonFL.cpp
         Models/FuncaoPendulo.cpp
-        Models/InterfaceMetodo.cpp
         Models/NewtonRaphson.cpp
         Models/Bissecao.cpp
         Models/Secante.cpp

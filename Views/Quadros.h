@@ -5,13 +5,12 @@
 #include <vector>
 #include "../Models/InterfaceMetodo.h"
 #include "../Models/EstudoPassoH.h"
-using namespace std;
 
 struct LinhaQuadro {
     double a3{}, a2{}, lambda{};
     bool usaLambda{};   // so o Newton com FL usa lambda
-    string metodo;
-    string isolamento;
+    std::string metodo;
+    std::string isolamento;
     Resultado r;
     int avaliacoesF{};
     int avaliacoesDf{};
@@ -32,25 +31,23 @@ private:
 
 LinhaQuadro executar(const InterfaceMetodo& metodo, const Funcao& funcao,
                      const Parametros& par, double a3, double a2,
-                     const string& isolamento);
+                     const std::string& isolamento);
 
-string textoPonto(double x0);
-string textoIntervalo(double a, double b);
-
-bool passouLimite(const Resultado& r);
+std::string textoPonto(double x0);
+std::string textoIntervalo(double a, double b);
 
 // mensagem do metodo em uma linha so (para tabelas e CSV)
-string mensagemEmLinha(const Resultado& r);
+std::string mensagemEmLinha(const Resultado& r);
 
-void imprimirEstudoPassoH(const vector<PontoEstudoH>& pontos, double a3, double a2, double x);
+void imprimirEstudoPassoH(const std::vector<PontoEstudoH>& pontos, double a3, double a2, double x);
 
-void imprimirQuadroResposta(const vector<LinhaQuadro>& linhas);
-void imprimirQuadroComparativo(const vector<LinhaQuadro>& linhas);
+void imprimirQuadroResposta(const std::vector<LinhaQuadro>& linhas);
+void imprimirQuadroComparativo(const std::vector<LinhaQuadro>& linhas);
 
-void exportarCSV(const vector<LinhaQuadro>& linhas,
-                 const string& arquivoResultados,
-                 const string& arquivoHistorico);
-void exportarMarkdown(const vector<LinhaQuadro>& linhas, const string& arquivo);
-void exportarLatex(const vector<LinhaQuadro>& linhas, const string& arquivo);
+void exportarCSV(const std::vector<LinhaQuadro>& linhas,
+                 const std::string& arquivoResultados,
+                 const std::string& arquivoHistorico);
+void exportarMarkdown(const std::vector<LinhaQuadro>& linhas, const std::string& arquivo);
+void exportarLatex(const std::vector<LinhaQuadro>& linhas, const std::string& arquivo);
 
 #endif

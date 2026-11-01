@@ -71,9 +71,7 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
             resultado.convergiu = true;
             resultado.erro = std::abs(xProx-d);
             resultado.mensagem = "Raiz calculada com sucesso!";
-            if (std::abs(resultado.raiz) > DESLOCAMENTO_LIMITE) {
-                resultado.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
-            }
+            avisarDeslocamento(resultado);
             return resultado;
         }
 

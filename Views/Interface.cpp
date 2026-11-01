@@ -2,6 +2,7 @@
 #include "Quadros.h"
 #include "Graficos.h"
 #include "../Models/FuncHorner.h"
+#include "../Models/FuncaoPendulo.h"
 #include "../Models/NewtonRaphson.h"
 #include "../Models/NewtonFL.h"
 #include "../Models/NewtonDerivadaNumerica.h"
@@ -10,6 +11,7 @@
 #include "../Models/Bissecao.h"
 #include "../Models/PosicaoFalsa.h"
 #include "../Models/AnaliseG.h"
+#include "../Models/constantes.h"
 
 #include <cctype>
 #include <cstdio>
@@ -21,18 +23,24 @@ using namespace std;
 
 namespace {
 
+const NewtonRaphson NEWTON;
+const NewtonFL NEWTON_FL;
+const NewtonDerivadaNumerica NEWTON_NUM;
+const NewtonHorner NEWTON_HORNER;
+const Secante SECANTE;
+const Bissecao BISSECAO;
+const PosicaoFalsa POSICAO_FALSA;
+
+// mesma lista no menu e nas tabelas: o nome mostrado e sempre metodo.nome()
 const int NUM_METODOS = 7;
-const char* NOMES[NUM_METODOS] = {
-    "Newton original (a)", "Newton com FL (b)", "Newton deriv. numerica (c)",
-    "Newton com Horner",   "Secante",           "Bissecao",
-    "Posicao falsa"
+const InterfaceMetodo* const METODOS[NUM_METODOS] = {
+    &NEWTON, &NEWTON_FL, &NEWTON_NUM, &NEWTON_HORNER, &SECANTE, &BISSECAO, &POSICAO_FALSA
 };
-const char* FAMILIAS[NUM_METODOS] = {"Newton", "Newton", "Newton", "Newton",
+const char* FAMILIAS[NUM_METODOS] = {"Newton, item a", "Newton, item b", "Newton, item c", "Newton",
                                      "Aberto", "Intervalo", "Intervalo"};
 
 const double PASSO_DERIVADA_PADRAO = 1e-5;   // h da derivada numerica (~ raiz cubica do eps da maquina)
 const double DISTANCIA_SECANTE = 0.1;        // x1 padrao da secante = d0 + 0,1
-const double PASSO_ISOLAMENTO = 0.5;         // Bolzano grosso: intervalo inicial comparavel ao chute d0
 
 struct Config {
     double d0, x1, h, precisao;
@@ -51,41 +59,34 @@ string textoDoisPontos(double x0, double x1) {
 
 void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
                      double lambda, const Config& c, const vector<bool>& usar) {
-    FuncHorner f(a3, a2);
+    FuncaoPendulo direta(a3, a2);  // formula direta: todos os metodos menos o Newton com Horner
+    FuncHorner poli(a3, a2);       // coeficientes: so o Newton com Horner
 
     //  métodos abertos: partem de d0 (a secante, de d0 e x1)
     Parametros pAberto(c.d0, c.precisao, lambda, c.h, c.maxIter);
-    NewtonRaphson newton;
-    NewtonFL newtonFL;
-    NewtonDerivadaNumerica newtonNum;
-    NewtonHorner newtonHorner;
-    const InterfaceMetodo* newtons[4] = {&newton, &newtonFL, &newtonNum, &newtonHorner};
-    for (int i = 0; i < 4; i++)
-        if (usar[i]) linhas.push_back(executar(*newtons[i], f, pAberto, a3, a2, textoPonto(c.d0)));
+    for (int i = 0; i < 3; i++)
+        if (usar[i]) linhas.push_back(executar(*METODOS[i], direta, pAberto, a3, a2, textoPonto(c.d0)));
+    if (usar[3]) linhas.push_back(executar(NEWTON_HORNER, poli, pAberto, a3, a2, textoPonto(c.d0)));
 
     if (usar[4]) {
         Parametros pSecante(c.d0, c.precisao, lambda, c.h, c.maxIter, c.x1);
-        Secante secante;
-        linhas.push_back(executar(secante, f, pSecante, a3, a2, textoDoisPontos(c.d0, c.x1)));
+        linhas.push_back(executar(SECANTE, direta, pSecante, a3, a2, textoDoisPontos(c.d0, c.x1)));
     }
 
     // métodos de intervalo: precisam do isolamento (Bolzano)
     if (!(usar[5] || usar[6])) return;
-    auto intervalos = isolarRaizes(f, 0.0, 5.0, PASSO_ISOLAMENTO);
+    auto intervalos = isolarRaizes(direta, 0.0, 5.0, PASSO_ISOLAMENTO);
     if (intervalos.empty()) {
-        cout << "a3=" << a3 << " a2=" << a2 << ": sem raiz positiva em [0, 5] "
-             << "(Bissecao e Posicao falsa ignoradas)\n";
+        cout << "a3=" << a3 << " a2=" << a2 << ": " << mensagemSemIntervalo(0.0, 5.0, PASSO_ISOLAMENTO)
+             << " (" << BISSECAO.nome() << " e " << POSICAO_FALSA.nome() << " ignoradas)\n";
         return;
     }
     double a = intervalos[0].first, b = intervalos[0].second;   // menor raiz positiva
     Parametros pIntervalo(a, c.precisao, lambda, c.h, c.maxIter, b);
     string iso = textoIntervalo(a, b);
 
-    Bissecao bissecao;
-    PosicaoFalsa posicaoFalsa;
-    const InterfaceMetodo* intervalares[2] = {&bissecao, &posicaoFalsa};
-    for (int i = 0; i < 2; i++)
-        if (usar[5 + i]) linhas.push_back(executar(*intervalares[i], f, pIntervalo, a3, a2, iso));
+    for (int i = 5; i < 7; i++)
+        if (usar[i]) linhas.push_back(executar(*METODOS[i], direta, pIntervalo, a3, a2, iso));
 }
 
 //leitura
@@ -150,7 +151,7 @@ bool lerSimNao(const string& msg, bool padrao) {
 vector<bool> escolherMetodos() {
     cout << "\nMetodos disponiveis:\n";
     for (int i = 0; i < NUM_METODOS; i++)
-        printf("  %d) %-28s (%s)\n", i + 1, NOMES[i], FAMILIAS[i]);
+        printf("  %d) %-28s (%s)\n", i + 1, METODOS[i]->nome().c_str(), FAMILIAS[i]);
     while (true) {
         string s = lerLinha("Escolha (ex: 1,2,5 | Enter = todos): ");
         vector<bool> usar(NUM_METODOS, false);
@@ -244,14 +245,16 @@ void Interface::analiseGrade() {
         for (double a2 : valores)
             rodarCombinacao(linhas, a3, a2, 0.05, configPadrao(), vector<bool>(NUM_METODOS, true));
 
-    int naoConv = 0, passou = 0;
+    int naoConv = 0, passou = 0, semSentido = 0;
     for (const LinhaQuadro& l : linhas) {
         if (!l.r.convergiu) naoConv++;
         if (passouLimite(l.r)) passou++;
+        if (semSentidoFisico(l.r)) semSentido++;
     }
     exportarCSV(linhas, "resultados_grade.csv", "historico_grade.csv");
     cout << linhas.size() << " execucoes: " << naoConv << " nao convergiram, "
-         << passou << " passaram de 0,3 cm.\n"
+         << passou << " passaram de 0,3 cm, "
+         << semSentido << " convergiram para raiz d <= 0 (sem sentido fisico).\n"
          << "Arquivos gerados: resultados_grade.csv, historico_grade.csv\n";
 }
 
@@ -260,7 +263,7 @@ void Interface::estudoPasso() {
     double a3 = lerDouble("a3", 1.0);
     double a2 = lerDouble("a2", 1.0);
     double x = lerDouble("Ponto x", 0.5);
-    FuncHorner f(a3, a2);
+    FuncaoPendulo f(a3, a2);
     vector<PontoEstudoH> pontos = estudoPassoH(f, x);
     imprimirEstudoPassoH(pontos, a3, a2, x);
     if (gerarFiguraEstudoPassoH(pontos, a3, a2, x, PASSO_DERIVADA_PADRAO, "figuras"))

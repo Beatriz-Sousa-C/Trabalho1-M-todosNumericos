@@ -2,7 +2,6 @@
 #define TB1_NEWTONHORNER_H
 
 #include "InterfaceMetodo.h"
-using namespace std;
 
 /* Newton com Horner mesma fórmula do Newton original,
 x_{k+1} = x_k − p(x_k)/p'(x_k), mas p e p' saem de uma única iteração
@@ -11,7 +10,7 @@ class NewtonHorner : public InterfaceMetodo {
 public:
     Resultado calcular(const Funcao& funcao,
                        const Parametros& parametros) const override;
-    string nome() const override { return "Newton com Horner"; }
+    std::string nome() const override { return "Newton com Horner"; }
 };
 
 #endif

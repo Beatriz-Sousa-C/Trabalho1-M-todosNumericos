@@ -46,9 +46,7 @@ Resultado NewtonRaphson::calcular(const Funcao &funcao, const Parametros &parame
         if (r.erro < parametros.precisao) {
             r.convergiu = true;
             r.mensagem = "A raiz foi encontrada com sucesso.";
-            if (std::abs(r.raiz) > DESLOCAMENTO_LIMITE) {
-                r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
-            }
+            avisarDeslocamento(r);
             return r;
         }
         x = x_prox;
@@ -58,5 +56,5 @@ Resultado NewtonRaphson::calcular(const Funcao &funcao, const Parametros &parame
 }
 
 std::string NewtonRaphson::nome() const {
-    return "Metodo de Newton Raphson";
+    return "Newton original";
 }

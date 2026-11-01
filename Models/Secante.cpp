@@ -5,11 +5,6 @@
 
 using namespace std;
 
-static void avisarLimite(Resultado& r) {
-    if (fabs(r.raiz) > DESLOCAMENTO_LIMITE)
-        r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
-}
-
 Resultado Secante::calcular(const Funcao& funcao, const Parametros& p) const {
     Resultado r{};
 
@@ -53,7 +48,7 @@ Resultado Secante::calcular(const Funcao& funcao, const Parametros& p) const {
             r.iteracoes = i;
             r.convergiu = true;
             r.mensagem = "Raiz calculada com sucesso! (f(x) = 0)";
-            avisarLimite(r);
+            avisarDeslocamento(r);
             return r;
         }
 
@@ -82,7 +77,7 @@ Resultado Secante::calcular(const Funcao& funcao, const Parametros& p) const {
         if (r.erro < epsilon) {
             r.convergiu = true;
             r.mensagem = "Raiz calculada com sucesso!";
-            avisarLimite(r);
+            avisarDeslocamento(r);
             return r;
         }
 

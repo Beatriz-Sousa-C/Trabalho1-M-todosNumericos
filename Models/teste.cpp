@@ -1,5 +1,8 @@
 // Testes da parte P4 (caso padrão: a3 = 1, a2 = 1, d0 = 0,5, e = 0,001).
-#include <bits/stdc++.h>
+#include <cassert>
+#include <cmath>
+#include <iostream>
+#include <vector>
 #include "../Models/FuncHorner.h"
 #include "../Models/NewtonHorner.h"
 #include "../Models/PosicaoFalsa.h"

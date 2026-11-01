@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <utility>
 
+using namespace std;
+
 FuncHorner::FuncHorner(double a3, double a2)
     : coef_{a3, 0.0, -9.0 * a2, 3.0} {}
 

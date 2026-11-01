@@ -10,6 +10,8 @@
 #include <iomanip>
 #include <iostream>
 
+using namespace std;
+
 static const int REPETICOES_TEMPO = 1000;
 
 LinhaQuadro executar(const InterfaceMetodo& metodo, const Funcao& funcao,
@@ -55,10 +57,6 @@ string textoIntervalo(double a, double b) {
     return buf;
 }
 
-bool passouLimite(const Resultado& r) {
-    return r.convergiu && fabs(r.raiz) > DESLOCAMENTO_LIMITE;
-}
-
 string mensagemEmLinha(const Resultado& r) {
     string s;
     for (char c : r.mensagem) {
@@ -73,6 +71,12 @@ static string mensagemCSV(const Resultado& r) {
     string s = mensagemEmLinha(r);
     for (char& c : s) if (c == ',') c = ';';
     return s;
+}
+
+// raiz d <= 0 nao e deslocamento do pendulo: nem "passou" nem "nao passou"
+static const char* textoPassou(const Resultado& r) {
+    if (semSentidoFisico(r)) return "d<=0";
+    return passouLimite(r) ? "SIM" : "nao";
 }
 
 static string textoLambda(const LinhaQuadro& l) {
@@ -100,7 +104,7 @@ void imprimirQuadroResposta(const vector<LinhaQuadro>& linhas) {
         printf("%5.2f %5.2f %6s  %-30s %12.6f %10.2e  %-4s  %-8s  %s\n",
                l.a3, l.a2, textoLambda(l).c_str(), l.metodo.c_str(), l.r.raiz, l.r.erro,
                l.r.convergiu ? "sim" : "nao",
-               passouLimite(l.r) ? "SIM" : "nao", mensagemEmLinha(l.r).c_str());
+               textoPassou(l.r), mensagemEmLinha(l.r).c_str());
     }
 }
 
@@ -131,13 +135,13 @@ void exportarCSV(const vector<LinhaQuadro>& linhas,
     if (!res) { cerr << "Nao foi possivel criar " << arquivoResultados << '\n'; return; }
     res << setprecision(10);
     res << "a3,a2,lambda,metodo,isolamento,raiz,erro,iteracoes,"
-           "aval_f,aval_df,tempo_us,convergiu,passou_limite,mensagem\n";
+           "aval_f,aval_df,tempo_us,convergiu,passou_limite,sem_sentido_fisico,mensagem\n";
     for (const LinhaQuadro& l : linhas) {
         res << l.a3 << ',' << l.a2 << ',' << l.lambda << ','
             << l.metodo << ',' << l.isolamento << ','
             << l.r.raiz << ',' << l.r.erro << ',' << l.r.iteracoes << ','
             << l.avaliacoesF << ',' << l.avaliacoesDf << ',' << l.tempoUs << ','
-            << l.r.convergiu << ',' << passouLimite(l.r) << ','
+            << l.r.convergiu << ',' << passouLimite(l.r) << ',' << semSentidoFisico(l.r) << ','
             << mensagemCSV(l.r) << '\n';
     }
 
@@ -164,7 +168,7 @@ void exportarMarkdown(const vector<LinhaQuadro>& linhas, const string& arquivo) 
                  "| %g | %g | %s | %s | %s | %.6f | %.2e | %d | %d | %.3f | %s |\n",
                  l.a3, l.a2, textoLambda(l).c_str(), l.metodo.c_str(), l.isolamento.c_str(),
                  l.r.raiz, l.r.erro, l.r.iteracoes, l.avaliacoesF, l.tempoUs,
-                 passouLimite(l.r) ? "sim" : "não");
+                 semSentidoFisico(l.r) ? "d ≤ 0" : passouLimite(l.r) ? "sim" : "não");
         out << buf;
     }
 }
@@ -181,7 +185,7 @@ void exportarLatex(const vector<LinhaQuadro>& linhas, const string& arquivo) {
                  "%g & %g & %s & %s & %s & %.6f & %.2e & %d & %d & %.3f & %s \\\\\n",
                  l.a3, l.a2, textoLambda(l).c_str(), l.metodo.c_str(), l.isolamento.c_str(),
                  l.r.raiz, l.r.erro, l.r.iteracoes, l.avaliacoesF, l.tempoUs,
-                 passouLimite(l.r) ? "sim" : "n\\~ao");
+                 semSentidoFisico(l.r) ? "$d \\le 0$" : passouLimite(l.r) ? "sim" : "n\\~ao");
         out << buf;
     }
     out << "\\hline\n\\end{tabular}\n";
