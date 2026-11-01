@@ -16,6 +16,7 @@ private:
     void casoPadrao();        // a3=1, a2=1, d0=0,5, λ=0,05, e=0,001
     void analiseGrade();      // grade a3 x a2 (alimenta os gráficos do item g)
     void gerarGraficos();     // gera os gráficos (SVG) em C++
+    void estudoPasso();       // erro da derivada numérica para h = 1e-1 ... 1e-12
     void mostrarEExportar(const std::vector<LinhaQuadro>& linhas);
 };
 

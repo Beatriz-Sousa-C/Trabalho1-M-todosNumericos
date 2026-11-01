@@ -1,5 +1,6 @@
 #include "Quadros.h"
 #include "../Models/NewtonHorner.h"
+#include "../Models/NewtonFL.h"
 #include "../Models/FuncHorner.h"
 #include "../Models/constantes.h"
 #include <chrono>
@@ -18,6 +19,7 @@ LinhaQuadro executar(const InterfaceMetodo& metodo, const Funcao& funcao,
     l.a3 = a3;
     l.a2 = a2;
     l.lambda = par.lambda;
+    l.usaLambda = dynamic_cast<const NewtonFL*>(&metodo) != nullptr;
     l.metodo = metodo.nome();
     l.isolamento = isolamento;
 
@@ -57,6 +59,29 @@ bool passouLimite(const Resultado& r) {
     return r.convergiu && fabs(r.raiz) > DESLOCAMENTO_LIMITE;
 }
 
+string mensagemEmLinha(const Resultado& r) {
+    string s;
+    for (char c : r.mensagem) {
+        if (c == '\n') s += " / ";
+        else s += c;
+    }
+    return s;
+}
+
+// virgula viraria separador de coluna no CSV
+static string mensagemCSV(const Resultado& r) {
+    string s = mensagemEmLinha(r);
+    for (char& c : s) if (c == ',') c = ';';
+    return s;
+}
+
+static string textoLambda(const LinhaQuadro& l) {
+    if (!l.usaLambda) return "-";
+    char buf[32];
+    snprintf(buf, sizeof buf, "%g", l.lambda);
+    return buf;
+}
+
 void imprimirEstudoPassoH(const vector<PontoEstudoH>& pontos, double a3, double a2, double x) {
     printf("\nESTUDO DO PASSO h DA DERIVADA NUMERICA (a3 = %g, a2 = %g, x = %g)\n", a3, a2, x);
     printf("f'(x) ~ [f(x+h) - f(x-h)] / 2h   (diferenca central, erro de truncamento O(h^2))\n");
@@ -68,14 +93,14 @@ void imprimirEstudoPassoH(const vector<PontoEstudoH>& pontos, double a3, double 
 
 void imprimirQuadroResposta(const vector<LinhaQuadro>& linhas) {
     printf("\nQUADRO RESPOSTA (item e)\n");
-    printf("%5s %5s %6s  %-30s %12s %10s  %-4s  %s\n",
-           "a3", "a2", "lambda", "metodo", "d (cm)", "erro", "conv", "d > 0,3?");
-    printf("%s\n", string(90, '-').c_str());
+    printf("%5s %5s %6s  %-30s %12s %10s  %-4s  %-8s  %s\n",
+           "a3", "a2", "lambda", "metodo", "d (cm)", "erro", "conv", "d > 0,3?", "obs");
+    printf("%s\n", string(110, '-').c_str());
     for (const LinhaQuadro& l : linhas) {
-        printf("%5.2f %5.2f %6.3f  %-30s %12.6f %10.2e  %-4s  %s\n",
-               l.a3, l.a2, l.lambda, l.metodo.c_str(), l.r.raiz, l.r.erro,
+        printf("%5.2f %5.2f %6s  %-30s %12.6f %10.2e  %-4s  %-8s  %s\n",
+               l.a3, l.a2, textoLambda(l).c_str(), l.metodo.c_str(), l.r.raiz, l.r.erro,
                l.r.convergiu ? "sim" : "nao",
-               passouLimite(l.r) ? "SIM" : "nao");
+               passouLimite(l.r) ? "SIM" : "nao", mensagemEmLinha(l.r).c_str());
     }
 }
 
@@ -106,13 +131,14 @@ void exportarCSV(const vector<LinhaQuadro>& linhas,
     if (!res) { cerr << "Nao foi possivel criar " << arquivoResultados << '\n'; return; }
     res << setprecision(10);
     res << "a3,a2,lambda,metodo,isolamento,raiz,erro,iteracoes,"
-           "aval_f,aval_df,tempo_us,convergiu,passou_limite\n";
+           "aval_f,aval_df,tempo_us,convergiu,passou_limite,mensagem\n";
     for (const LinhaQuadro& l : linhas) {
         res << l.a3 << ',' << l.a2 << ',' << l.lambda << ','
             << l.metodo << ',' << l.isolamento << ','
             << l.r.raiz << ',' << l.r.erro << ',' << l.r.iteracoes << ','
             << l.avaliacoesF << ',' << l.avaliacoesDf << ',' << l.tempoUs << ','
-            << l.r.convergiu << ',' << passouLimite(l.r) << '\n';
+            << l.r.convergiu << ',' << passouLimite(l.r) << ','
+            << mensagemCSV(l.r) << '\n';
     }
 
     ofstream hist(arquivoHistorico);
@@ -135,8 +161,8 @@ void exportarMarkdown(const vector<LinhaQuadro>& linhas, const string& arquivo) 
     char buf[512];
     for (const LinhaQuadro& l : linhas) {
         snprintf(buf, sizeof buf,
-                 "| %g | %g | %g | %s | %s | %.6f | %.2e | %d | %d | %.3f | %s |\n",
-                 l.a3, l.a2, l.lambda, l.metodo.c_str(), l.isolamento.c_str(),
+                 "| %g | %g | %s | %s | %s | %.6f | %.2e | %d | %d | %.3f | %s |\n",
+                 l.a3, l.a2, textoLambda(l).c_str(), l.metodo.c_str(), l.isolamento.c_str(),
                  l.r.raiz, l.r.erro, l.r.iteracoes, l.avaliacoesF, l.tempoUs,
                  passouLimite(l.r) ? "sim" : "não");
         out << buf;
@@ -152,8 +178,8 @@ void exportarLatex(const vector<LinhaQuadro>& linhas, const string& arquivo) {
     char buf[512];
     for (const LinhaQuadro& l : linhas) {
         snprintf(buf, sizeof buf,
-                 "%g & %g & %g & %s & %s & %.6f & %.2e & %d & %d & %.3f & %s \\\\\n",
-                 l.a3, l.a2, l.lambda, l.metodo.c_str(), l.isolamento.c_str(),
+                 "%g & %g & %s & %s & %s & %.6f & %.2e & %d & %d & %.3f & %s \\\\\n",
+                 l.a3, l.a2, textoLambda(l).c_str(), l.metodo.c_str(), l.isolamento.c_str(),
                  l.r.raiz, l.r.erro, l.r.iteracoes, l.avaliacoesF, l.tempoUs,
                  passouLimite(l.r) ? "sim" : "n\\~ao");
         out << buf;
