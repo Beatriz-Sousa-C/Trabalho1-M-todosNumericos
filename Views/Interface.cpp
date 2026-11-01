@@ -32,6 +32,7 @@ const char* FAMILIAS[NUM_METODOS] = {"Newton", "Newton", "Newton", "Newton",
 
 const double PASSO_DERIVADA_PADRAO = 1e-5;   // h da derivada numerica (~ raiz cubica do eps da maquina)
 const double DISTANCIA_SECANTE = 0.1;        // x1 padrao da secante = d0 + 0,1
+const double PASSO_ISOLAMENTO = 0.5;         // Bolzano grosso: intervalo inicial comparavel ao chute d0
 
 struct Config {
     double d0, x1, h, precisao;
@@ -70,7 +71,7 @@ void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
 
     // métodos de intervalo: precisam do isolamento (Bolzano)
     if (!(usar[5] || usar[6])) return;
-    auto intervalos = isolarRaizes(f, 0.0, 5.0, 0.01);
+    auto intervalos = isolarRaizes(f, 0.0, 5.0, PASSO_ISOLAMENTO);
     if (intervalos.empty()) {
         cout << "a3=" << a3 << " a2=" << a2 << ": sem raiz positiva em [0, 5] "
              << "(Bissecao e Posicao falsa ignoradas)\n";
