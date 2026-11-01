@@ -23,4 +23,5 @@ add_executable(
         Models/NewtonDerivadaNumerica.cpp
         Views/Quadros.cpp
         Controllers/CalculoController.cpp
+        Views/Graficos.cpp
 )

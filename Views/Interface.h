@@ -15,7 +15,7 @@ private:
     void novaExecucao();      // pergunta n, λ, a3, a2, e... e roda
     void casoPadrao();        // a3=1, a2=1, d0=0,5, λ=0,05, e=0,001
     void analiseGrade();      // grade a3 x a2 (alimenta os gráficos do item g)
-    void gerarGraficos();     // chama o script Python
+    void gerarGraficos();     // gera os gráficos (SVG) em C++
     void mostrarEExportar(const std::vector<LinhaQuadro>& linhas);
 };
 

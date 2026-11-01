@@ -1,5 +1,6 @@
 #include "Interface.h"
 #include "Quadros.h"
+#include "Graficos.h"
 #include "../Models/FuncHorner.h"
 #include "../Models/NewtonRaphson.h"
 #include "../Models/NewtonFL.h"
@@ -28,12 +29,13 @@ const char* NOMES[NUM_METODOS] = {
 const char* FAMILIAS[NUM_METODOS] = {"Newton", "Newton", "Newton", "Newton",
                                      "Aberto", "Intervalo", "Intervalo"};
 
+
 void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
                      double lambda, double d0, double precisao, int maxIter,
                      const vector<bool>& usar) {
     FuncHorner f(a3, a2);
 
-    // métodos que partem de um ponto inicial d0
+    //  métodos que partem de um ponto inicial d0
     Parametros pAberto(d0, precisao, lambda, 1e-5, maxIter);
     NewtonRaphson newton;
     NewtonFL newtonFL;
@@ -43,7 +45,7 @@ void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
     for (int i = 0; i < 4; i++)
         if (usar[i]) linhas.push_back(executar(*newtons[i], f, pAberto, a3, a2, textoPonto(d0)));
 
-    //métodos de intervalo: precisam do isolamento (Bolzano)
+    // métodos de intervalo: precisam do isolamento (Bolzano)
     if (!(usar[4] || usar[5] || usar[6])) return;
     auto intervalos = isolarRaizes(f, 0.0, 5.0, 0.01);
     if (intervalos.empty()) {
@@ -63,8 +65,8 @@ void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
         if (usar[4 + i]) linhas.push_back(executar(*outros[i], f, pIntervalo, a3, a2, iso));
 }
 
-// leitura
-struct FimDaEntrada {};   // Ctrl+D / entrada acabou
+//leitura
+struct FimDaEntrada {};  
 
 string lerLinha(const string& msg) {
     cout << msg << flush;
@@ -130,9 +132,9 @@ vector<bool> escolherMetodos() {
     }
 }
 
-} // namespace
+}
 
-//Interface
+//  Interface
 
 Interface::Interface() {}
 
@@ -207,11 +209,11 @@ void Interface::gerarGraficos() {
         cout << "\nAinda nao ha resultados.csv: rode a opcao 1 ou 2 primeiro.\n";
         return;
     }
-    cout << "\nGerando graficos em figuras/ (precisa de python3 com pandas e matplotlib)...\n" << flush;
-    int rc = system("python3 Graficos/plots.py . figuras");
-    if (rc != 0)
-        cout << "Nao foi possivel gerar os graficos. Rode manualmente: "
-                "python3 Graficos/plots.py . figuras\n";
+    cout << "\n";
+    if (gerarFiguras(".", "figuras"))
+        cout << "Pronto: abra os arquivos .svg da pasta figuras/ (VS Code ou navegador).\n";
+    else
+        cout << "Nao foi possivel gerar os graficos.\n";
 }
 
 void Interface::executar() {
