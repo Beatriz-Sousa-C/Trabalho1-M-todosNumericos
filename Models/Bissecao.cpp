@@ -44,6 +44,17 @@ Resultado Bissecao::calcular(const Funcao& funcao, const Parametros& parametros)
         return r;
         }
 
+        if (fa == 0 || fb == 0) {
+        r.raiz = (fa == 0) ? a : b;
+        r.erro = 0;
+        r.convergiu = true;
+        r.mensagem = "Extremo do intervalo ja e raiz.";
+        if (fabs(r.raiz) > DESLOCAMENTO_LIMITE) {
+            r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
+        }
+        return r;
+        }
+
         if (b - a < epsilon) {
         r.raiz = (a + b) / 2;
         r.erro = b - a;

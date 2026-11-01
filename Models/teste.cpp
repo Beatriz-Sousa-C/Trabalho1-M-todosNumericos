@@ -36,15 +36,16 @@ int main() {
     // 4) Posição falsa no intervalo isolado
     auto intervalos = isolarRaizes(f, -5, 5, 0.1);
     assert(intervalos.size() == 3);
-    PosicaoFalsa pf(intervalos[1].first, intervalos[1].second);
-    Resultado rp = pf.calcular(f, par);
+    PosicaoFalsa pf;
+    Parametros parIntervalo(intervalos[1].first, 0.001, 0.05, 1e-5, 100, intervalos[1].second);
+    Resultado rp = pf.calcular(f, parIntervalo);
     assert(rp.convergiu && perto(rp.raiz, rn.raiz, 1e-3));
     cout << "[ok] Posição falsa: d = " << rp.raiz
               << " em " << rp.iteracoes << " iterações\n";
 
     // 5) Intervalo sem troca de sinal deve falhar
-    PosicaoFalsa ruim(1.0, 2.0);
-    assert(!ruim.calcular(f, par).convergiu);
+    Parametros parRuim(1.0, 0.001, 0.05, 1e-5, 100, 2.0);
+    assert(!pf.calcular(f, parRuim).convergiu);
     cout << "[ok] Posição falsa recusa intervalo sem troca de sinal\n";
 
     // 6) Lote do item g

@@ -21,6 +21,7 @@ add_executable(
         Models/Secante.cpp
         Models/DerivadaNumerica.cpp
         Models/NewtonDerivadaNumerica.cpp
+        Models/EstudoPassoH.cpp
         Views/Quadros.cpp
         Controllers/CalculoController.cpp
         Views/Graficos.cpp

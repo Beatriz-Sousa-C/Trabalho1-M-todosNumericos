@@ -1,5 +1,6 @@
 #include "Quadros.h"
 #include "../Models/NewtonHorner.h"
+#include "../Models/FuncHorner.h"
 #include "../Models/constantes.h"
 #include <chrono>
 #include <cmath>
@@ -20,10 +21,12 @@ LinhaQuadro executar(const InterfaceMetodo& metodo, const Funcao& funcao,
     l.metodo = metodo.nome();
     l.isolamento = isolamento;
 
-    if (dynamic_cast<const NewtonHorner*>(&metodo)) {
+    const auto* poli = dynamic_cast<const FuncHorner*>(&funcao);
+    if (dynamic_cast<const NewtonHorner*>(&metodo) && poli) {
+        int antes = poli->passadasHorner();
         l.r = metodo.calcular(funcao, par);
-        l.avaliacoesF = l.r.iteracoes;
-        l.avaliacoesDf = l.r.iteracoes;
+        l.avaliacoesF = poli->passadasHorner() - antes;
+        l.avaliacoesDf = l.avaliacoesF;
     } else {
         FuncaoContadora contadora(funcao);
         l.r = metodo.calcular(contadora, par);
@@ -51,7 +54,16 @@ string textoIntervalo(double a, double b) {
 }
 
 bool passouLimite(const Resultado& r) {
-    return r.convergiu && r.raiz > DESLOCAMENTO_LIMITE;
+    return r.convergiu && fabs(r.raiz) > DESLOCAMENTO_LIMITE;
+}
+
+void imprimirEstudoPassoH(const vector<PontoEstudoH>& pontos, double a3, double a2, double x) {
+    printf("\nESTUDO DO PASSO h DA DERIVADA NUMERICA (a3 = %g, a2 = %g, x = %g)\n", a3, a2, x);
+    printf("f'(x) ~ [f(x+h) - f(x-h)] / 2h   (diferenca central, erro de truncamento O(h^2))\n");
+    printf("%10s %22s %14s\n", "h", "f'(x) aproximada", "|erro|");
+    printf("%s\n", string(48, '-').c_str());
+    for (const PontoEstudoH& p : pontos)
+        printf("%10.0e %22.15f %14.3e\n", p.h, p.derivadaAproximada, p.erro);
 }
 
 void imprimirQuadroResposta(const vector<LinhaQuadro>& linhas) {

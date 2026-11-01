@@ -1,5 +1,5 @@
 #include "NewtonFL.h"
-#include "FuncaoPendulo.h"
+#include "constantes.h"
 #include <cmath>
 
 Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros) const{
@@ -12,7 +12,7 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
     int maximoIteracoes = parametros.maximoIteracoes;
     
     resultado.raiz = d;
-    resultado.erro = 0.0;
+    resultado.erro = NAN;
     resultado.iteracoes = 0;
     resultado.convergiu = false;
 
@@ -71,7 +71,7 @@ Resultado NewtonFL::calcular(const Funcao& funcao, const Parametros& parametros)
             resultado.convergiu = true;
             resultado.erro = std::abs(xProx-d);
             resultado.mensagem = "Raiz calculada com sucesso!\n";
-            if (std::abs(resultado.raiz) > 0.3) {
+            if (std::abs(resultado.raiz) > DESLOCAMENTO_LIMITE) {
                 resultado.mensagem += "ATENCAO: Deslocamento maior que 0,3 cm!";
             }
             return resultado;

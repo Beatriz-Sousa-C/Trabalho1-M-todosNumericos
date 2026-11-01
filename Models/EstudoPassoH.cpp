@@ -1,5 +1,5 @@
 #include "EstudoPassoH.h"
-#include "derivadaNumerica.h"
+#include "DerivadaNumerica.h"
 #include <cmath>
 
 
@@ -9,8 +9,8 @@ vector<PontoEstudoH> estudoPassoH(const Funcao& f, double x,  int expoenteMin, i
     vector<PontoEstudoH> pontos;
     double exata = f.avaliarDerivada(x);
     for (int k = expoenteMin; k <= expoenteMax; k++) {
-        double h = pow(10.0, -k);                 // h = 10^-k
-        double aprox = derivadaNumerica(funcao, x, h);
+        double h = pow(10.0, -k);
+        double aprox = derivadaNumerica(f, x, h);
         pontos.push_back({h, aprox, fabs(aprox - exata)});
     }
     return pontos;

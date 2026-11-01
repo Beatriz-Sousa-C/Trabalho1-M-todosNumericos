@@ -43,6 +43,13 @@ Resultado Secante::calcular(const Funcao& funcao,const Parametros& p) const{
     r.historico.push_back(x1);
 
     for(int i=0; i<p.maximoIteracoes; i++){
+        if (!std::isfinite(f0) || !std::isfinite(f1)) {
+            r.raiz = x1;
+            r.iteracoes = i;
+            r.mensagem = "Valor nao finito durante o calculo.";
+            return r;
+        }
+
         double denom = f1-f0;
         if(fabs(denom)<LIMITE_DENOMINADOR){
             r.raiz = x1;
@@ -55,6 +62,12 @@ Resultado Secante::calcular(const Funcao& funcao,const Parametros& p) const{
     // double x2 = (x0*f1 - x1*f0)/denom poderia ser feito assim, mas por ter mais operavoes seria mais perigoso de se perder infrmações devido ao erro acumulado.
     double x2 = x1 - f1 * (x1 - x0) / denom;
     r.historico.push_back(x2);
+    if (!std::isfinite(x2)) {
+        r.raiz = x1;
+        r.iteracoes = i + 1;
+        r.mensagem = "Proxima aproximacao eh nao finita.";
+        return r;
+    }
     r.erro = fabs(x2 - x1);
 
     if( r.erro<p.precisao){
@@ -78,7 +91,7 @@ Resultado Secante::calcular(const Funcao& funcao,const Parametros& p) const{
     r.raiz = x1;
     r.iteracoes = p.maximoIteracoes;
     r.convergiu = false;
-    r.mensagem = "Máximo de interações atingido";
+    r.mensagem = "Maximo de iteracoes atingido.";
     return r;
 }
 string Secante::nome() const {
