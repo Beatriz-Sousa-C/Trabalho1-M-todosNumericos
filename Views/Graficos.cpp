@@ -198,8 +198,12 @@ struct Area {
     double L, T, Wd, Hd;          // retângulo do gráfico em pixels
     double x0, x1, y0, y1;        // limites dos dados 
     bool logY = false;
+    bool logX = false;
 
-    double X(double x) const { return L + Wd * (x - x0) / (x1 - x0); }
+    double X(double x) const {
+        if (logX) x = log10(max(x, 1e-300));
+        return L + Wd * (x - x0) / (x1 - x0);
+    }
     double Y(double y) const {
         if (logY) y = log10(max(y, 1e-300));
         return T + Hd * (1 - (y - y0) / (y1 - y0));
@@ -224,6 +228,13 @@ struct Area {
                 s.texto(L - 8, py + 5, fmt(v), 13, "end");
             }
         }
+        if (logX) {
+            for (int e = (int)ceil(x0 - 1e-9); e <= (int)floor(x1 + 1e-9); e++) {
+                double px = L + Wd * (e - x0) / (x1 - x0);
+                s.linha(px, T, px, T + Hd, COR_GRADE);
+                s.texto(px, T + Hd + 20, "1e" + to_string(e), 13, "middle");
+            }
+        } else
         for (double v : marcas(x0, x1, xInteiro ? (int)min(10.0, x1 - x0) : 7)) {
             if (xInteiro && fabs(v - round(v)) > 1e-9) continue;
             double px = X(v);
@@ -649,4 +660,50 @@ bool gerarFiguras(const string& pastaCsv, const string& pastaFiguras) {
     } else
         cout << "  (rode a opcao 3 antes para gerar os graficos 06)\n";
     return feitas > 0;
+}
+
+bool gerarFiguraEstudoPassoH(const vector<PontoEstudoH>& pontos, double a3, double a2, double x,
+                             double hPadrao, const string& pastaFiguras) {
+    if (pontos.empty()) return false;
+    const double PISO = 1e-17;   // erro 0 vira zero numérico (log de 0 não existe)
+    double hmin = 1e300, hmax = 0, emin = 1e300, emax = 0;
+    for (size_t i = 0; i < pontos.size(); i++) {
+        double e = max(pontos[i].erro, PISO);
+        hmin = min(hmin, pontos[i].h); hmax = max(hmax, pontos[i].h);
+        emin = min(emin, e); emax = max(emax, e);
+    }
+    double lo = floor(log10(emin)), hi = ceil(log10(emax));
+    if (hi - lo < 2) lo = hi - 2;
+
+    Svg svg(1000, 620);
+    Area a{100, 80, 840, 430, floor(log10(hmin)), ceil(log10(hmax)), lo, hi};
+    a.logX = a.logY = true;
+    a.desenhar(svg, "Erro da derivada numérica em função do passo h", "passo h (escala log)",
+               "|erro| de f'(x) (escala log)", false, 18,
+               "f(d) = a3·d³ − 9·a2·d + 3 com a3=" + fmt(a3) + ", a2=" + fmt(a2) + ", x=" + fmt(x) +
+               "  –  diferença central [f(x+h) − f(x−h)] / 2h");
+
+    if (hPadrao >= hmin && hPadrao <= hmax) {
+        double px = a.X(hPadrao);
+        svg.linha(px, a.T, px, a.T + a.Hd, "#B54A00", 1.5, "6,5");
+        svg.texto(px + 6, a.T + 16, "h padrão = " + fmt(hPadrao), 13, "start", "#B54A00");
+    }
+    vector<pair<double, double>> pts;
+    for (const PontoEstudoH& p : pontos) pts.push_back({a.X(p.h), a.Y(max(p.erro, PISO))});
+    svg.polilinha(pts, PALETA[0]);
+    for (auto& q : pts) svg.marcador(0, q.first, q.second, PALETA[0]);
+
+    // erro exatamente 0 é cancelamento de arredondamento por acaso, não um h "melhor"
+    for (const PontoEstudoH& p : pontos)
+        if (p.erro == 0) {
+            double px = a.X(p.h), py = a.Y(PISO);
+            svg.marcador(0, px, py, PALETA[1], 7);
+            svg.texto(px + 10, py - 10, "erro = 0 (cancelamento por acaso)", 13, "start", PALETA[1]);
+        }
+
+    svg.texto(a.L, 600, "À direita domina o truncamento (erro ~ h²); à esquerda domina o arredondamento "
+                        "(erro ~ eps/h). O ótimo fica no meio.", 13, "start", "#6B7788");
+    error_code ec;
+    filesystem::create_directories(pastaFiguras, ec);
+    return svg.salvar(pastaFiguras + "/07_estudo_passo_h.svg");
 }

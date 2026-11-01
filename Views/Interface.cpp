@@ -11,6 +11,7 @@
 #include "../Models/PosicaoFalsa.h"
 #include "../Models/AnaliseG.h"
 
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -133,6 +134,18 @@ int lerInt(const string& msg, int padrao, int minimo, int maximo) {
     }
 }
 
+// Enter = resposta padrão.
+bool lerSimNao(const string& msg, bool padrao) {
+    while (true) {
+        string s = lerLinha(msg + (padrao ? " (S/n): " : " (s/N): "));
+        if (s.empty()) return padrao;
+        char c = (char)tolower((unsigned char)s[0]);
+        if (c == 's') return true;
+        if (c == 'n') return false;
+        cout << "  Responda s ou n.\n";
+    }
+}
+
 vector<bool> escolherMetodos() {
     cout << "\nMetodos disponiveis:\n";
     for (int i = 0; i < NUM_METODOS; i++)
@@ -176,11 +189,20 @@ void Interface::novaExecucao() {
     double precisao = lerDouble("Precisao e", 0.001, true);
     double d0 = lerDouble("Aproximacao inicial d0", 0.5);
     int maxIter = lerInt("Maximo de iteracoes", 100, 1, 100000);
-    double h = lerDouble("Passo h da derivada numerica", PASSO_DERIVADA_PADRAO, true);
-    double x1 = lerDouble("Segunda aproximacao x1 da secante", d0 + DISTANCIA_SECANTE);
-    if (x1 == d0) {
-        x1 = d0 + DISTANCIA_SECANTE;
-        cout << "  A secante precisa de x1 diferente de d0; usando x1 = " << x1 << ".\n";
+    vector<bool> usar = escolherMetodos();
+
+    // h só importa para a derivada numérica (método 3); x1 só para a secante (método 5)
+    double h = PASSO_DERIVADA_PADRAO;
+    if (usar[2] && lerSimNao("Alterar o passo h da derivada numerica (padrao " +
+                             textoNumero(PASSO_DERIVADA_PADRAO) + ")?", false))
+        h = lerDouble("Passo h da derivada numerica", PASSO_DERIVADA_PADRAO, true);
+    double x1 = d0 + DISTANCIA_SECANTE;
+    if (usar[4]) {
+        x1 = lerDouble("Segunda aproximacao x1 da secante", d0 + DISTANCIA_SECANTE);
+        if (x1 == d0) {
+            x1 = d0 + DISTANCIA_SECANTE;
+            cout << "  A secante precisa de x1 diferente de d0; usando x1 = " << x1 << ".\n";
+        }
     }
     Config c{d0, x1, h, precisao, maxIter};
 
@@ -197,7 +219,6 @@ void Interface::novaExecucao() {
         lamAnt = o.lambda; a3Ant = o.a3; a2Ant = o.a2;   // o último vira sugestão da próxima
         opcoes.push_back(o);
     }
-    vector<bool> usar = escolherMetodos();
 
     vector<LinhaQuadro> linhas;
     for (const Opcao& o : opcoes)
@@ -239,7 +260,12 @@ void Interface::estudoPasso() {
     double a2 = lerDouble("a2", 1.0);
     double x = lerDouble("Ponto x", 0.5);
     FuncHorner f(a3, a2);
-    imprimirEstudoPassoH(estudoPassoH(f, x), a3, a2, x);
+    vector<PontoEstudoH> pontos = estudoPassoH(f, x);
+    imprimirEstudoPassoH(pontos, a3, a2, x);
+    if (gerarFiguraEstudoPassoH(pontos, a3, a2, x, PASSO_DERIVADA_PADRAO, "figuras"))
+        cout << "\nGrafico gerado: figuras/07_estudo_passo_h.svg\n";
+    else
+        cout << "\nNao foi possivel gerar o grafico do estudo do passo h.\n";
 }
 
 void Interface::gerarGraficos() {
