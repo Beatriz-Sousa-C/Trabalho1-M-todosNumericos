@@ -9,6 +9,7 @@ using namespace std;
 
 struct LinhaQuadro {
     double a3{}, a2{}, lambda{};
+    bool usaLambda{};   // so o Newton com FL usa lambda
     string metodo;
     string isolamento;
     Resultado r;
@@ -37,6 +38,9 @@ string textoPonto(double x0);
 string textoIntervalo(double a, double b);
 
 bool passouLimite(const Resultado& r);
+
+// mensagem do metodo em uma linha so (para tabelas e CSV)
+string mensagemEmLinha(const Resultado& r);
 
 void imprimirEstudoPassoH(const vector<PontoEstudoH>& pontos, double a3, double a2, double x);
 

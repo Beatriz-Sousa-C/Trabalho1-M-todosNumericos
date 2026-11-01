@@ -33,11 +33,11 @@ Resultado NewtonRaphson::calcular(const Funcao &funcao, const Parametros &parame
         }
 
         x_prox = x - f_x/f_derivada;
-        r.historico.push_back(x_prox);
         if (!std::isfinite(x_prox)) {
             r.mensagem = "Proxima aproximacao eh nao finita.";
             return r;
         }
+        r.historico.push_back(x_prox);
 
         ++iteracoes;
         r.raiz = x_prox;

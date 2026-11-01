@@ -1,65 +1,70 @@
 #include "NewtonDerivadaNumerica.h"
 #include "DerivadaNumerica.h"
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include "constantes.h"
 
 using namespace std;
 
-Resultado NewtonDerivadaNumerica::calcular(const Funcao& f,const Parametros& p) const {
+Resultado NewtonDerivadaNumerica::calcular(const Funcao& f, const Parametros& p) const {
     Resultado r{};
-    double x1 = p.aproximacaoInicial;
+    double x = p.aproximacaoInicial;
     double epsilon = p.precisao;
     double h = p.passoDerivada;
     int maximoIteracoes = p.maximoIteracoes;
 
-    r.raiz = x1;
+    r.raiz = x;
     r.convergiu = false;
     r.iteracoes = 0;
     r.erro = NAN;
 
-    if (!isfinite(x1) ||!isfinite(epsilon) || !isfinite(h) ||
+    if (!isfinite(x) || !isfinite(epsilon) || !isfinite(h) ||
         maximoIteracoes <= 0 || epsilon <= 0 || h <= 0) {
         r.mensagem = "Parametro invalido identificado!";
         return r;
     }
 
-    r.historico.push_back(x1);
-    for(int i =0; i<maximoIteracoes; i++){
-        double fx = f.avaliar(x1);
-        double dfx = derivadaNumerica(f, x1, h);
+    r.historico.push_back(x);
+    for (int i = 0; i < maximoIteracoes; i++) {
+        double fx = f.avaliar(x);
+        double dfx = derivadaNumerica(f, x, h);
 
         if (!isfinite(fx) || !isfinite(dfx)) {
             r.mensagem = "Valor nao finito durante o calculo. Nao foi possivel completar a analise.";
             return r;
         }
 
-        if (fabs(dfx) < LIMITE_DENOMINADOR) {
-            r.mensagem = "Derivada numerica muito pequena, não converge";
+        // Erro de arredondamento da diferenca central ~ eps_maquina*|f|/h: abaixo disso
+        // a derivada calculada e so ruido, e o passo de Newton nao tem significado.
+        double ruido = 100 * numeric_limits<double>::epsilon() * max(1.0, fabs(fx)) /
+                       (h * max(1.0, fabs(x)));
+        if (fabs(dfx) < max(LIMITE_DENOMINADOR, ruido)) {
+            r.mensagem = "Derivada numerica proxima de zero (ponto critico): metodo falhou.";
             return r;
         }
 
-        double xProx = x1 - (fx / dfx);
+        double xProx = x - (fx / dfx);
+        if (!isfinite(xProx)) {
+            r.mensagem = "Proxima aproximacao eh nao finita.";
+            return r;
+        }
         r.historico.push_back(xProx);
 
-        if (!isfinite(xProx)) {
-            r.mensagem = "Proxima aproximacao eh nao finita";
-            return r;
-        }
-
         r.raiz = xProx;
-        r.erro = fabs(xProx-x1);
-        r.iteracoes = i+1;
+        r.erro = fabs(xProx - x);
+        r.iteracoes = i + 1;
 
-        if (fabs(xProx - x1) < epsilon) {
+        if (r.erro < epsilon) {
             r.convergiu = true;
-            r.mensagem = "Raiz calculada com sucesso!\n";
+            r.mensagem = "Raiz calculada com sucesso!";
             if (fabs(r.raiz) > DESLOCAMENTO_LIMITE) {
-                r.mensagem += "ATENCAO: Deslocamento maior que 0,3 cm!";
+                r.mensagem += "\nATENCAO: Deslocamento maior que 0,3 cm!";
             }
             return r;
         }
 
-        x1 = xProx;
+        x = xProx;
     }
 
     r.mensagem = "Limite maximo de iteracoes atingido.";

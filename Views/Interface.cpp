@@ -29,40 +29,61 @@ const char* NOMES[NUM_METODOS] = {
 const char* FAMILIAS[NUM_METODOS] = {"Newton", "Newton", "Newton", "Newton",
                                      "Aberto", "Intervalo", "Intervalo"};
 
+const double PASSO_DERIVADA_PADRAO = 1e-5;   // h da derivada numerica (~ raiz cubica do eps da maquina)
+const double DISTANCIA_SECANTE = 0.1;        // x1 padrao da secante = d0 + 0,1
+
+struct Config {
+    double d0, x1, h, precisao;
+    int maxIter;
+};
+
+Config configPadrao() {
+    return {0.5, 0.5 + DISTANCIA_SECANTE, PASSO_DERIVADA_PADRAO, 0.001, 100};
+}
+
+string textoDoisPontos(double x0, double x1) {
+    char buf[64];
+    snprintf(buf, sizeof buf, "x0=%g;x1=%g", x0, x1);
+    return buf;
+}
 
 void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
-                     double lambda, double d0, double precisao, int maxIter,
-                     const vector<bool>& usar) {
+                     double lambda, const Config& c, const vector<bool>& usar) {
     FuncHorner f(a3, a2);
 
-    //  métodos que partem de um ponto inicial d0
-    Parametros pAberto(d0, precisao, lambda, 1e-5, maxIter);
+    //  métodos abertos: partem de d0 (a secante, de d0 e x1)
+    Parametros pAberto(c.d0, c.precisao, lambda, c.h, c.maxIter);
     NewtonRaphson newton;
     NewtonFL newtonFL;
     NewtonDerivadaNumerica newtonNum;
     NewtonHorner newtonHorner;
     const InterfaceMetodo* newtons[4] = {&newton, &newtonFL, &newtonNum, &newtonHorner};
     for (int i = 0; i < 4; i++)
-        if (usar[i]) linhas.push_back(executar(*newtons[i], f, pAberto, a3, a2, textoPonto(d0)));
+        if (usar[i]) linhas.push_back(executar(*newtons[i], f, pAberto, a3, a2, textoPonto(c.d0)));
+
+    if (usar[4]) {
+        Parametros pSecante(c.d0, c.precisao, lambda, c.h, c.maxIter, c.x1);
+        Secante secante;
+        linhas.push_back(executar(secante, f, pSecante, a3, a2, textoDoisPontos(c.d0, c.x1)));
+    }
 
     // métodos de intervalo: precisam do isolamento (Bolzano)
-    if (!(usar[4] || usar[5] || usar[6])) return;
+    if (!(usar[5] || usar[6])) return;
     auto intervalos = isolarRaizes(f, 0.0, 5.0, 0.01);
     if (intervalos.empty()) {
         cout << "a3=" << a3 << " a2=" << a2 << ": sem raiz positiva em [0, 5] "
-             << "(Secante, Bissecao e Posicao falsa ignoradas)\n";
+             << "(Bissecao e Posicao falsa ignoradas)\n";
         return;
     }
     double a = intervalos[0].first, b = intervalos[0].second;   // menor raiz positiva
-    Parametros pIntervalo(a, precisao, lambda, 1e-5, maxIter, b);
+    Parametros pIntervalo(a, c.precisao, lambda, c.h, c.maxIter, b);
     string iso = textoIntervalo(a, b);
 
-    Secante secante;
     Bissecao bissecao;
     PosicaoFalsa posicaoFalsa;
-    const InterfaceMetodo* outros[3] = {&secante, &bissecao, &posicaoFalsa};
-    for (int i = 0; i < 3; i++)
-        if (usar[4 + i]) linhas.push_back(executar(*outros[i], f, pIntervalo, a3, a2, iso));
+    const InterfaceMetodo* intervalares[2] = {&bissecao, &posicaoFalsa};
+    for (int i = 0; i < 2; i++)
+        if (usar[5 + i]) linhas.push_back(executar(*intervalares[i], f, pIntervalo, a3, a2, iso));
 }
 
 //leitura
@@ -155,6 +176,13 @@ void Interface::novaExecucao() {
     double precisao = lerDouble("Precisao e", 0.001, true);
     double d0 = lerDouble("Aproximacao inicial d0", 0.5);
     int maxIter = lerInt("Maximo de iteracoes", 100, 1, 100000);
+    double h = lerDouble("Passo h da derivada numerica", PASSO_DERIVADA_PADRAO, true);
+    double x1 = lerDouble("Segunda aproximacao x1 da secante", d0 + DISTANCIA_SECANTE);
+    if (x1 == d0) {
+        x1 = d0 + DISTANCIA_SECANTE;
+        cout << "  A secante precisa de x1 diferente de d0; usando x1 = " << x1 << ".\n";
+    }
+    Config c{d0, x1, h, precisao, maxIter};
 
     struct Opcao { double lambda, a3, a2; };
     vector<Opcao> opcoes;
@@ -173,24 +201,26 @@ void Interface::novaExecucao() {
 
     vector<LinhaQuadro> linhas;
     for (const Opcao& o : opcoes)
-        rodarCombinacao(linhas, o.a3, o.a2, o.lambda, d0, precisao, maxIter, usar);
+        rodarCombinacao(linhas, o.a3, o.a2, o.lambda, c, usar);
     mostrarEExportar(linhas);
 }
 
 void Interface::casoPadrao() {
-    cout << "\nCaso padrao do enunciado: a3=1, a2=1, d0=0,5, lambda=0,05, e=0,001\n";
+    cout << "\nCaso padrao do enunciado: a3=1, a2=1, d0=0,5, lambda=0,05, e=0,001\n"
+         << "(derivada numerica com h=1e-5; secante com x0=0,5 e x1=0,6)\n";
     vector<LinhaQuadro> linhas;
-    rodarCombinacao(linhas, 1.0, 1.0, 0.05, 0.5, 0.001, 100, vector<bool>(NUM_METODOS, true));
+    rodarCombinacao(linhas, 1.0, 1.0, 0.05, configPadrao(), vector<bool>(NUM_METODOS, true));
     mostrarEExportar(linhas);
 }
 
 void Interface::analiseGrade() {
-    cout << "\nAnalise (g): a3 e a2 em {0,5; 1; 1,5; 2; 2,5; 3}, lambda=0,05, d0=0,5, e=0,001\n";
+    cout << "\nAnalise (g): a3 e a2 em {0,5; 1; 1,5; 2; 2,5; 3}, lambda=0,05, d0=0,5, e=0,001\n"
+         << "(derivada numerica com h=1e-5; secante com x0=0,5 e x1=0,6)\n";
     vector<double> valores{0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
     vector<LinhaQuadro> linhas;
     for (double a3 : valores)
         for (double a2 : valores)
-            rodarCombinacao(linhas, a3, a2, 0.05, 0.5, 0.001, 100, vector<bool>(NUM_METODOS, true));
+            rodarCombinacao(linhas, a3, a2, 0.05, configPadrao(), vector<bool>(NUM_METODOS, true));
 
     int naoConv = 0, passou = 0;
     for (const LinhaQuadro& l : linhas) {
@@ -201,6 +231,15 @@ void Interface::analiseGrade() {
     cout << linhas.size() << " execucoes: " << naoConv << " nao convergiram, "
          << passou << " passaram de 0,3 cm.\n"
          << "Arquivos gerados: resultados_grade.csv, historico_grade.csv\n";
+}
+
+void Interface::estudoPasso() {
+    cout << "\n--- Estudo do passo h da derivada numerica ---\n";
+    double a3 = lerDouble("a3", 1.0);
+    double a2 = lerDouble("a2", 1.0);
+    double x = lerDouble("Ponto x", 0.5);
+    FuncHorner f(a3, a2);
+    imprimirEstudoPassoH(estudoPassoH(f, x), a3, a2, x);
 }
 
 void Interface::gerarGraficos() {
@@ -229,13 +268,15 @@ void Interface::executar() {
                  << "2) Caso padrao do enunciado\n"
                  << "3) Analise (g): grade de a3 e a2\n"
                  << "4) Gerar graficos\n"
+                 << "5) Estudo do passo h da derivada numerica\n"
                  << "0) Sair\n";
-            int op = lerInt("Opcao", 1, 0, 4);
+            int op = lerInt("Opcao", 1, 0, 5);
             if (op == 0) break;
             if (op == 1) novaExecucao();
             else if (op == 2) casoPadrao();
             else if (op == 3) analiseGrade();
-            else gerarGraficos();
+            else if (op == 4) gerarGraficos();
+            else estudoPasso();
         }
     } catch (const FimDaEntrada&) {
         cout << "\n";
