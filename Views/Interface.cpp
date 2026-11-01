@@ -59,7 +59,7 @@ void rodarCombinacao(vector<LinhaQuadro>& linhas, double a3, double a2,
 
     Secante secante;
     Bissecao bissecao;
-    PosicaoFalsa posicaoFalsa(a, b);
+    PosicaoFalsa posicaoFalsa;
     const InterfaceMetodo* outros[3] = {&secante, &bissecao, &posicaoFalsa};
     for (int i = 0; i < 3; i++)
         if (usar[4 + i]) linhas.push_back(executar(*outros[i], f, pIntervalo, a3, a2, iso));
