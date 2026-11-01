@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "../Models/InterfaceMetodo.h"
+#include "../Models/EstudoPassoH.h"
 using namespace std;
 
 struct LinhaQuadro {
@@ -36,6 +37,8 @@ string textoPonto(double x0);
 string textoIntervalo(double a, double b);
 
 bool passouLimite(const Resultado& r);
+
+void imprimirEstudoPassoH(const vector<PontoEstudoH>& pontos, double a3, double a2, double x);
 
 void imprimirQuadroResposta(const vector<LinhaQuadro>& linhas);
 void imprimirQuadroComparativo(const vector<LinhaQuadro>& linhas);
